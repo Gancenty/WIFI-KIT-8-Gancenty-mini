@@ -126,9 +126,9 @@ void TimeCountDis(){
     Heltec.display->setFont(ArialMT_Plain_16);
     String timenow="";
     int secondpassed=now()-nowpassed;
-    int secondnow=secondpassed%60;
-    int minutenow=secondpassed/60;
     int hournow=secondpassed/3600;
+    int minutenow=(secondpassed-hournow*3600)/60;
+    int secondnow=secondpassed%60;
     if(hournow<10){
       timenow+="0";
     }
