@@ -31,7 +31,7 @@ const int httpPort = 80;                    // 将要连接的服务器端口
  
 // 心知天气HTTP请求所需信息
 String reqUserKey = "S0u-8VQ7vWGcXDVf2";   // 私钥
-String reqLocation = "Jian";            // 城市
+String reqLocation = "Nanchang";            // 城市
 String reqUnit = "c"; 
 
 time_t prevDisplay = 0;//初始时间
@@ -72,10 +72,14 @@ void setup() {
   Heltec.display->flipScreenVertically();
   Heltec.display->setBrightness(128);
   screenCleanA();
+  
   WiFiManager wifiConnect;
   delay(100); 
+  wifiConnect.setConfigPortalTimeout(180);
+  wifiConnect.setConnectTimeout(30);
   WifiDis();
-  wifiConnect.autoConnect("Malloc.","20001031");//WIFI默认密码
+  wifiConnect.autoConnect("Malloc.","20001031");
+  
   pinMode(0,INPUT_PULLUP);
   screenCleanA();
   Udp.begin(localPort);
@@ -98,8 +102,11 @@ void setup() {
 }
 void loop(){
   if(digitalRead(0)==LOW){
-    delay(1000);
     screenCleanA();
+    delay(1000);
+    if(digitalRead(0)==LOW){
+      setwifi();
+    }
     DisplayType+=1;
     timecount=true;
     if(DisplayType==6){
@@ -108,13 +115,23 @@ void loop(){
   }
   switch(DisplayType){
     case 1:WeatherTimeDis();break;
-    case 2:TimeDis();break;
+    case 2:TimeCountDis();break;
     case 3:WeatherNowDis();break;
-    case 4:TimeCountDis();break;
+    case 4:TimeDis();break;
     case 5:WifiDis();break;
     default:break;
   }
  }
+void setwifi(){
+  WiFiManager wifiConnect;
+  WiFi.disconnect();
+  delay(100); 
+  wifiConnect.setConfigPortalTimeout(180);
+  wifiConnect.setConnectTimeout(30);
+  WifiDis();
+  wifiConnect.startConfigPortal("Malloc.","20001031");
+  
+}
 int nowpassed=0;
 void TimeCountDis(){
     screenCleanA();

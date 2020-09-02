@@ -23,7 +23,7 @@ void WifiInfo();//搭配wifiicon
 void WeatherNowInfo();//天气信息，搭配天气动画使用
 void WeatherTimeInfo();//同时显示天气和时间
 void SynchronizeInfo(int progress);
-//void TimeCountInfo();
+void setwifi();
 
 void WeatherNowDis();//天气显示 
 void TimeDis();
