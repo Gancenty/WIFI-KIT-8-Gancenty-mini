@@ -75,7 +75,7 @@ void setup() {
   
   WiFiManager wifiConnect;
   delay(100); 
-  wifiConnect.setConfigPortalTimeout(180);
+  wifiConnect.setConfigPortalTimeout(240);
   wifiConnect.setConnectTimeout(30);
   WifiDis();
   wifiConnect.autoConnect("Malloc.","20001031");
@@ -100,18 +100,44 @@ void setup() {
   }
   screenCleanA();
 }
+int nowpassed=0;//过去开始计时时候的now()
+int secondpassed=0;//过去的时间
+int pausetime=0;//暂停时间
+bool pause=false;//计时器暂停
 void loop(){
-  if(digitalRead(0)==LOW){
+  int progress=0;
+  String nowstr="";
+  if(digitalRead(0)==LOW&&DisplayType==2){
+    pause=!pause;
+    delay(100);
+    pausetime=now()-(nowpassed+secondpassed);
+  }
+  while(digitalRead(0)==LOW){
     screenCleanA();
-    delay(1000);
-    if(digitalRead(0)==LOW){
-      setwifi();
-    }
+    Heltec.display->drawProgressBar(15,17,98,10,progress);
+    delay(10);
+    progress+=2;
+    if(progress==100){
     DisplayType+=1;
     timecount=true;
+    pause=false;
+    progress=0;
     if(DisplayType==6){
       DisplayType=1;
     }
+    }
+    switch(DisplayType){
+    case 1:nowstr="1.WeatherTimeDis";break;
+    case 2:nowstr="2.TimeCountDis";break;
+    case 3:nowstr="3.WeatherNowDis";break;
+    case 4:nowstr="4.TimeDis";break;
+    case 5:nowstr="5.WiFiDis";break;
+    default:break;
+  }  
+    Heltec.display->setFont(ArialMT_Plain_10);
+    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
+    Heltec.display->drawString(64,9,nowstr); 
+    Heltec.display->display();
   }
   switch(DisplayType){
     case 1:WeatherTimeDis();break;
@@ -129,41 +155,73 @@ void setwifi(){
   wifiConnect.setConfigPortalTimeout(180);
   wifiConnect.setConnectTimeout(30);
   WifiDis();
-  wifiConnect.startConfigPortal("Malloc.","20001031");
-  
+  wifiConnect.startConfigPortal("Malloc.","20001031");  
 }
-int nowpassed=0;
-void TimeCountDis(){
-    screenCleanA();
+
+void TimeCountDis(){  
     if(timecount){
       nowpassed=now();
       timecount=false;
-    }
-    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    Heltec.display->setFont(ArialMT_Plain_16);
-    String timenow="";
-    int secondpassed=now()-nowpassed;
-    int hournow=secondpassed/3600;
-    int minutenow=(secondpassed-hournow*3600)/60;
-    int secondnow=secondpassed%60;
-    if(hournow<10){
+      pausetime=0;
+      }
+    if(!pause){
+      screenCleanA();
+      Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
+      Heltec.display->setFont(ArialMT_Plain_16);
+      String timenow="";
+      nowpassed+=pausetime;
+      secondpassed=now()-nowpassed;
+      pausetime=0;
+      int hournow=secondpassed/3600;
+      int minutenow=(secondpassed-hournow*3600)/60;
+      int secondnow=secondpassed%60;
+      if(hournow<10){
       timenow+="0";
-    }
-    timenow+=String(hournow);
-    timenow+=":";
-    if(minutenow<10){
-      timenow+="0";
-    }
-    timenow+=String(minutenow);
-    timenow+=":";
-    if(secondnow<10){
-      timenow+="0";
-    }
-    timenow+=String(secondnow);
-    drawRectdotI(0,0,90,32,3); 
-    Heltec.display->drawString(screencenterX,screencenterY,timenow); 
-    Heltec.display->display();
-    energy(95,0,32,32);    
+       }
+      timenow+=String(hournow);
+      timenow+=":";
+      if(minutenow<10){
+        timenow+="0";
+      }
+      timenow+=String(minutenow);
+      timenow+=":";
+      if(secondnow<10){
+        timenow+="0";
+      }
+      timenow+=String(secondnow);
+      drawRectdotI(0,0,90,32,3); 
+      Heltec.display->drawString(screencenterX,screencenterY,timenow); 
+      Heltec.display->display();
+      energy(95,0,32,32);    
+   }else{
+      screenCleanA();
+      Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
+      Heltec.display->setFont(ArialMT_Plain_16);
+      String timenow="";
+      int hournow=secondpassed/3600;
+      int minutenow=(secondpassed-hournow*3600)/60;
+      int secondnow=secondpassed%60;
+      if(hournow<10){
+        timenow+="0";
+      }
+      timenow+=String(hournow);
+      timenow+=":";
+      if(minutenow<10){
+        timenow+="0";
+      }
+      timenow+=String(minutenow);
+      timenow+=":";
+      if(secondnow<10){
+        timenow+="0";
+      }
+      timenow+=String(secondnow);
+      drawRectdotI(0,0,90,32,3); 
+      Heltec.display->drawString(screencenterX,screencenterY,timenow); 
+      Heltec.display->drawXbm(95, 0, 32, 32, energy27);
+      Heltec.display->display();  
+      delay(500);
+      pausetime=now()-(nowpassed+secondpassed);
+  }
 }
 void UpdateWeatherNow(){
   if(now()-lastupdate>updatetime){
@@ -232,7 +290,7 @@ void screenClean(int xpos,int ypos,int iwidth,int iheight){
   Heltec.display->setColor(WHITE);
 }
 void screenCleanA(){
- Heltec.display->clear();  
+ Heltec.display->clear(); 
 }
 
 void httpRequest(){

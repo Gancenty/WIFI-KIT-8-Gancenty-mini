@@ -1,7 +1,5 @@
 void WeatherTimeInfo(){
     screenCleanA();
-    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    Heltec.display->setFont(ArialMT_Plain_16);
     String timenow="";
     if(hour()<10){
       timenow+="0";
@@ -17,8 +15,33 @@ void WeatherTimeInfo(){
       timenow+="0";
     }
     timenow+=String(second());
-    drawRectdotI(0,0,90,32,3); 
-    Heltec.display->drawString(screencenterX,screencenterY,timenow); 
+    drawRectdotO(0,0,90,32,3); 
+    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
+    Heltec.display->setFont(ArialMT_Plain_10);
+    Heltec.display->drawString(screencenterX-15,screencenterY-5,timenow); 
+    String datenow="";
+    if(month()<10){
+      datenow+="0";
+    }
+    datenow+=String(month());
+    datenow+='/';
+    if(day()<10){
+      datenow+="0";
+    }
+    datenow+=String(day());
+    switch(weekday()){
+      case 1:datenow+=F(" Sun");break;
+      case 2:datenow+=F(" Mon");break;
+      case 3:datenow+=F(" Tue");break;
+      case 4:datenow+=F(" Wed");break;
+      case 5:datenow+=F(" Thu");break;
+      case 6:datenow+=F(" Fri");break;
+      case 7:datenow+=F(" Sat");break;
+      default:datenow+=F(" NULL");
+    }
+    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
+    Heltec.display->setFont(ArialMT_Plain_10);
+    Heltec.display->drawString(screencenterX+15,screencenterY+5,datenow);
     Heltec.display->display(); 
 }
 void WeatherTimeDis(){
