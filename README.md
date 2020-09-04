@@ -21,19 +21,23 @@ WIFI-KIT-8&nbsp;[GitHub首页](https://github.com/HelTecAutomation/Heltec_ESP826
 
 ## 四：产品功能
 ```c
-  switch(DisplayType){
-    case 1:WeatherTimeDis();break;
-    case 2:TimeDis();break;
-    case 3:WeatherNowDis();break;
-    case 4:TimeCountDis();break;
-    case 5:WifiDis();break;
+    switch(DisplayType){
+    case 1:nowstr="1.WeatherTimeDis";break;//显示时间天气日期
+    case 2:nowstr="2.TimeCountDis";break;//计时器功能
+    case 3:nowstr="3.WeatherNowDis";break;//显示今日天气
+    case 4:nowstr="4.TimeDis";break;//显示当前时间
+    case 5:nowstr="5.WeatherDis";break;//天气预报
+    case 6:nowstr="6.WiFiDis";break;//显示连接WiFi信息
     default:break;
-  }
+  }  
 ```
 1. 显示此时天气，默认更新时间为十分钟`time_t updatetime=10*60;` 
 2. 显示此时时间，默认更新时间5分钟`setSyncInterval(300);`
 3. 借助`WifiManager`库实现WiFi连接
 4. 计时功能`TimeCountDis();`
+5. 天气预报功能`WeatherForecastDis();`
+6. 画框内点框啊`drawRectdotI(int xpos,int ypos,int iwidth,int iheight,int density);`
+7. 画框外点框啊`drawRectdotO(int xpos,int ypos,int iwidth,int iheight,int density);`
 ## 五：如何修改代码
 * 自定义天气显示地区`String reqLocation = "BeiJing";  `天气的数据源为 [心知天气](https://www.seniverse.com/) 相关城市名字请查看[心知天气文档](https://cdn.sencdn.com/download/data/thinkpage_cities.zip) 
     
