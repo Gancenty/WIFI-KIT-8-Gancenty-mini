@@ -45,12 +45,11 @@ int refreshtime=1000/animationfps;
 
 String weathernow="";//现在天气情况
 String tempnow="";//现在温度情况
-int weathercode=0;//现在天气代码
+int weathercode[3]={0,0,0};//现在天气代码
 String weatherOnlineUpdate="";//网络天气更新时间
+
 time_t lastupdate=0;//最后更新时间
 time_t updatetime=10*60;//更新延迟 十分钟
-int DisplayType=1;
-bool timecount=true;
 
 int xpos=0;
 int ypos=0;
@@ -100,12 +99,15 @@ void setup() {
   }
   screenCleanA();
 }
+int DisplayType=1;//显示模块
+bool timecount=true;//计时开启
+bool clearOnce=true;//forecast清屏
 int nowpassed=0;//过去开始计时时候的now()
 int secondpassed=0;//过去的时间
 int pausetime=0;//暂停时间
 bool pause=false;//计时器暂停
 void loop(){
-  int progress=0;
+  int progress=0;//进度条变量
   String nowstr="";
   if(digitalRead(0)==LOW&&DisplayType==2){
     pause=!pause;
@@ -121,8 +123,9 @@ void loop(){
     DisplayType+=1;
     timecount=true;
     pause=false;
+    clearOnce=true;
     progress=0;
-    if(DisplayType==6){
+    if(DisplayType==7){
       DisplayType=1;
     }
     }
@@ -131,7 +134,8 @@ void loop(){
     case 2:nowstr="2.TimeCountDis";break;
     case 3:nowstr="3.WeatherNowDis";break;
     case 4:nowstr="4.TimeDis";break;
-    case 5:nowstr="5.WiFiDis";break;
+    case 5:nowstr="5.WeatherDis";break;
+    case 6:nowstr="6.WiFiDis";break;
     default:break;
   }  
     Heltec.display->setFont(ArialMT_Plain_10);
@@ -144,10 +148,73 @@ void loop(){
     case 2:TimeCountDis();break;
     case 3:WeatherNowDis();break;
     case 4:TimeDis();break;
-    case 5:WifiDis();break;
+    case 5:WeatherForecastDis();break;
+    case 6:WifiDis();break;
     default:break;
   }
  }
+
+void WeatherForecastDis(){
+  int delaytime=500;
+  if(clearOnce){
+    screenCleanA();
+    clearOnce=false;    
+  }else{
+    delaytime=0;
+  }
+  Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
+  Heltec.display->setFont(ArialMT_Plain_10);
+  for(int setday=0;setday<3;setday++){
+    if(digitalRead(0)==LOW){
+      clearOnce=true;
+      break;
+    }
+    switch(setday){
+      case 0:xpos=0;ypos=0;break;
+      case 1:xpos=48;ypos=0;Heltec.display->drawString(40,15,"<>");Heltec.display->display();delay(delaytime);break;
+      case 2:xpos=96;ypos=0;Heltec.display->drawString(88,15,"<>");Heltec.display->display();delay(delaytime);break;
+      default:break;
+    }
+    if(weathernow=="null"){
+      puzzled(xpos,ypos,32,32);
+    }//获取不到天气信息
+    if(weathercode[setday]==0||weathercode[setday]==1||weathercode[setday]==38){
+      sunny(xpos,ypos,32,32);
+    }
+    if(weathercode[setday]==4||weathercode[setday]==5||weathercode[setday]==6||weathercode[setday]==7||weathercode[setday]==8||weathercode[setday]==9){
+      cloudy(xpos,ypos,32,32);
+    }
+    if(weathercode[setday]==10){
+      shower(xpos,ypos,32,32);
+    }   
+    if(weathercode[setday]==11||weathercode[setday]==12){
+      thunderrain(xpos,ypos,32,32);
+    } 
+    if(weathercode[setday]==13||weathercode[setday]==14){
+      lightrain(xpos,ypos,32,32);
+    } 
+    if(weathercode[setday]==15||weathercode[setday]==16||weathercode[setday]==17||weathercode[setday]==18){
+      heavyrain(xpos,ypos,32,32);
+    }
+    if(weathercode[setday]==19||weathercode[setday]==20||weathercode[setday]==21||weathercode[setday]==22||weathercode[setday]==23){
+      lightsnow(xpos,ypos,32,32);
+    }
+    if(weathercode[setday]==24||weathercode[setday]==25||weathercode[setday]==37){
+      heavysnow(xpos,ypos,32,32);
+    }
+    if(weathercode[setday]==26||weathercode[setday]==27||weathercode[setday]==28||weathercode[setday]==29||weathercode[setday]==30||weathercode[setday]==31){
+      if(hour()>=18){
+        nightfog(xpos,ypos,32,32);
+      }else{
+        dayhaze(xpos,ypos,32,32);
+      }
+    }
+    if(weathercode[setday]==32||weathercode[setday]==33||weathercode[setday]==34||weathercode[setday]==35||weathercode[setday]==36){
+      windy(xpos,ypos,32,32);
+    }
+  }
+  
+}
 void setwifi(){
   WiFiManager wifiConnect;
   WiFi.disconnect();
@@ -292,12 +359,11 @@ void screenClean(int xpos,int ypos,int iwidth,int iheight){
 void screenCleanA(){
  Heltec.display->clear(); 
 }
-
 void httpRequest(){
   WiFiClient client;
-  String reqRes = "/v3/weather/now.json?key=" + reqUserKey +
-                  + "&location=" + reqLocation + 
-                  "&language=en&unit=" +reqUnit;
+  String reqRes = "/v3/weather/daily.json?key=" + reqUserKey +
+                  + "&location=" + reqLocation + "&language=en&unit=" +
+                  reqUnit + "&start=0&days=3";
   // 建立http请求信息
   String httpRequest = String("GET ") + reqRes + " HTTP/1.1\r\n" + 
                               "Host: " + host + "\r\n" + 
@@ -326,51 +392,89 @@ void httpRequest(){
     
     // 利用ArduinoJson库解析心知天气响应信息
     parseInfo(client); 
-  } else {
+  }
+  else {
     Serial.println(" connection failed!");
   }   
   //断开客户端与服务器连接工作
   client.stop(); 
 }
  
-// 利用ArduinoJson库解析心知天气响应信息
 void parseInfo(WiFiClient client){
-  const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6) + 230;
+  const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_ARRAY_SIZE(3) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6) + 3*JSON_OBJECT_SIZE(14) + 860;
+  
   DynamicJsonDocument doc(capacity);
   
   deserializeJson(doc, client);
   
   JsonObject results_0 = doc["results"][0];
   
-  JsonObject results_0_now = results_0["now"];
-  const char* results_0_now_text = results_0_now["text"]; // "Sunny"
-  const char* results_0_now_code = results_0_now["code"]; // "0"
-  const char* results_0_now_temperature = results_0_now["temperature"]; // "32"
+  JsonArray results_0_daily = results_0["daily"];
   
-  const char* results_0_last_update = results_0["last_update"]; // "2020-06-02T14:40:00+08:00" 
- 
-  // 通过串口监视器显示以上信息
-  String results_0_now_text_str = results_0_now["text"].as<String>(); 
-  int results_0_now_code_int = results_0_now["code"].as<int>(); 
-  int results_0_now_temperature_int = results_0_now["temperature"].as<int>(); 
+  JsonObject results_0_daily_0 = results_0_daily[0];
+  const char* results_0_daily_0_date = results_0_daily_0["date"]; 
+  const char* results_0_daily_0_text_day = results_0_daily_0["text_day"]; 
+  const char* results_0_daily_0_code_day = results_0_daily_0["code_day"];
+  const char* results_0_daily_0_text_night = results_0_daily_0["text_night"]; 
+  const char* results_0_daily_0_code_night = results_0_daily_0["code_night"]; 
+  const char* results_0_daily_0_high = results_0_daily_0["high"];
+  const char* results_0_daily_0_low = results_0_daily_0["low"]; 
+  const char* results_0_daily_0_rainfall = results_0_daily_0["rainfall"];
+  const char* results_0_daily_0_precip = results_0_daily_0["precip"]; 
+  const char* results_0_daily_0_wind_direction = results_0_daily_0["wind_direction"]; 
+  const char* results_0_daily_0_wind_direction_degree = results_0_daily_0["wind_direction_degree"];
+  const char* results_0_daily_0_wind_speed = results_0_daily_0["wind_speed"];
+  const char* results_0_daily_0_wind_scale = results_0_daily_0["wind_scale"];
+  const char* results_0_daily_0_humidity = results_0_daily_0["humidity"];
   
-  String results_0_last_update_str = results_0["last_update"].as<String>();   
-  /*-------------显示天气要用到的-----------------*/
-  weathernow=results_0_now_text_str;
-  weathercode=results_0_now_code_int;
-  tempnow=String(results_0_now_temperature_int);
-  weatherOnlineUpdate=results_0_last_update_str;
-  /*--------------------------------------------*/
-  Serial.println(F("======Weahter Now======="));
-  Serial.print(F("Weather Now: "));
-  Serial.print(results_0_now_text_str);
-  Serial.print(F(" "));
-  Serial.println(results_0_now_code_int);
-  Serial.print(F("Temperature: "));
-  Serial.println(results_0_now_temperature_int);
-  Serial.print(F("Last Update: "));
-  Serial.println(results_0_last_update_str);
-  Serial.println(F("========================"));
+  JsonObject results_0_daily_1 = results_0_daily[1];
+  const char* results_0_daily_1_date = results_0_daily_1["date"];
+  const char* results_0_daily_1_text_day = results_0_daily_1["text_day"];
+  const char* results_0_daily_1_code_day = results_0_daily_1["code_day"];
+  const char* results_0_daily_1_text_night = results_0_daily_1["text_night"]; 
+  const char* results_0_daily_1_code_night = results_0_daily_1["code_night"]; 
+  const char* results_0_daily_1_high = results_0_daily_1["high"];
+  const char* results_0_daily_1_low = results_0_daily_1["low"]; 
+  const char* results_0_daily_1_rainfall = results_0_daily_1["rainfall"]; 
+  const char* results_0_daily_1_precip = results_0_daily_1["precip"]; 
+  const char* results_0_daily_1_wind_direction = results_0_daily_1["wind_direction"];
+  const char* results_0_daily_1_wind_direction_degree = results_0_daily_1["wind_direction_degree"]; 
+  const char* results_0_daily_1_wind_speed = results_0_daily_1["wind_speed"];
+  const char* results_0_daily_1_wind_scale = results_0_daily_1["wind_scale"];
+  const char* results_0_daily_1_humidity = results_0_daily_1["humidity"]; 
+  
+  JsonObject results_0_daily_2 = results_0_daily[2];
+  const char* results_0_daily_2_date = results_0_daily_2["date"];
+  const char* results_0_daily_2_text_day = results_0_daily_2["text_day"];
+  const char* results_0_daily_2_code_day = results_0_daily_2["code_day"];
+  const char* results_0_daily_2_text_night = results_0_daily_2["text_night"];
+  const char* results_0_daily_2_code_night = results_0_daily_2["code_night"];
+  const char* results_0_daily_2_high = results_0_daily_2["high"]; 
+  const char* results_0_daily_2_low = results_0_daily_2["low"]; 
+  const char* results_0_daily_2_rainfall = results_0_daily_2["rainfall"];
+  const char* results_0_daily_2_precip = results_0_daily_2["precip"]; 
+  const char* results_0_daily_2_wind_direction = results_0_daily_2["wind_direction"]; 
+  const char* results_0_daily_2_wind_direction_degree = results_0_daily_2["wind_direction_degree"]; 
+  const char* results_0_daily_2_wind_speed = results_0_daily_2["wind_speed"];
+  const char* results_0_daily_2_wind_scale = results_0_daily_2["wind_scale"]; 
+  const char* results_0_daily_2_humidity = results_0_daily_2["humidity"]; 
+  
+  const char* results_0_last_update = results_0["last_update"]; 
+  
+  // 从以上信息中摘选几个通过串口监视器显示
+  if(hour()<18){
+    weathernow = results_0_daily_0["text_day"].as<String>(); 
+    weathercode[0] = results_0_daily_0["code_day"].as<int>(); 
+  }else{
+    weathernow = results_0_daily_0["text_night"].as<String>(); 
+    weathercode[0] = results_0_daily_0["code_night"].as<int>(); 
+  }
+  weathercode[1] = results_0_daily_1["code_day"].as<int>();
+  weathercode[2] = results_0_daily_2["code_day"].as<int>();
+  weatherOnlineUpdate= results_0["last_update"].as<String>();
+  tempnow=String(results_0_daily_0["low"].as<int>())+"-"+String(results_0_daily_0["high"].as<int>());
+
+
 }
 /*---------------------------------NTP code--------------------------*/
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message

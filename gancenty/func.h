@@ -26,11 +26,12 @@ void SynchronizeInfo(int progress);
 void setwifi();
 
 void WeatherNowDis();//天气显示 
-void TimeDis();
-void WeatherTimeDis();
-void SynchronizeDis(int type);
-void WifiDis();
-void TimeCountDis();
+void TimeDis();//大屏时间显示
+void WeatherTimeDis();//天气和时间和日期显示
+void SynchronizeDis(int type);//1为时间同步，2为天气同步
+void WeatherForecastDis();//天气预报
+void WifiDis();//显示wifi信息
+void TimeCountDis();//计时器
 
 void UpdateWeatherNow();//天气更新
 

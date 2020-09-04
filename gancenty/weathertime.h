@@ -45,6 +45,7 @@ void WeatherTimeInfo(){
     Heltec.display->display(); 
 }
 void WeatherTimeDis(){
+    int setday=0;
       if(WiFi.status() != WL_CONNECTED){
       WeatherTimeInfo();
       puzzled(95,0,32,32);
@@ -57,38 +58,38 @@ void WeatherTimeDis(){
      if(weathernow=="null"){
         puzzled(95,0,32,32);
       }//获取不到天气信息
-      if(weathercode==0||weathercode==1||weathercode==38){
+      if(weathercode[setday]==0||weathercode[setday]==1||weathercode[setday]==38){
         sunny(95,0,32,32);
       }
-      if(weathercode==4||weathercode==5||weathercode==6||weathercode==7||weathercode==8||weathercode==9){
+      if(weathercode[setday]==4||weathercode[setday]==5||weathercode[setday]==6||weathercode[setday]==7||weathercode[setday]==8||weathercode[setday]==9){
         cloudy(95,0,32,32);
       }
-      if(weathercode==10){
+      if(weathercode[setday]==10){
         shower(95,0,32,32);
       }   
-      if(weathercode==11||weathercode==12){
+      if(weathercode[setday]==11||weathercode[setday]==12){
         thunderrain(95,0,32,32);
       } 
-      if(weathercode==13||weathercode==14){
+      if(weathercode[setday]==13||weathercode[setday]==14){
         lightrain(95,0,32,32);
       } 
-      if(weathercode==15||weathercode==16||weathercode==17||weathercode==18){
+      if(weathercode[setday]==15||weathercode[setday]==16||weathercode[setday]==17||weathercode[setday]==18){
         heavyrain(95,0,32,32);
       }
-      if(weathercode==19||weathercode==20||weathercode==21||weathercode==22||weathercode==23){
+      if(weathercode[setday]==19||weathercode[setday]==20||weathercode[setday]==21||weathercode[setday]==22||weathercode[setday]==23){
         lightsnow(95,0,32,32);
       }
-      if(weathercode==24||weathercode==25||weathercode==37){
+      if(weathercode[setday]==24||weathercode[setday]==25||weathercode[setday]==37){
         heavysnow(95,0,32,32);
       }
-      if(weathercode==26||weathercode==27||weathercode==28||weathercode==29||weathercode==30||weathercode==31){
+      if(weathercode[setday]==26||weathercode[setday]==27||weathercode[setday]==28||weathercode[setday]==29||weathercode[setday]==30||weathercode[setday]==31){
         if(hour()>=18){
           nightfog(95,0,32,32);
         }else{
           dayhaze(95,0,32,32);
         }
       }
-      if(weathercode==32||weathercode==33||weathercode==34||weathercode==35||weathercode==36){
+      if(weathercode[setday]==32||weathercode[setday]==33||weathercode[setday]==34||weathercode[setday]==35||weathercode[setday]==36){
         windy(95,0,32,32);
       }
 }
