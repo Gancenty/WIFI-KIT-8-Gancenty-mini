@@ -2,20 +2,30 @@
 WIFI-KIT-8&nbsp;[GitHub首页](https://github.com/HelTecAutomation/Heltec_ESP8266) | [产品官网](https://heltec.org)
 
 ## 二：如何使用该项目
-### 首先下载该项目
-1. 通过Git `Git clone git@github.com:Gancenty/WIFI-KIT-8-Gancenty-mini.git`
-2. 直接点击 [DownLoad ZIP](https://github.com/Gancenty/WIFI-KIT-8-Gancenty-mini/archive/master.zip)
-### 安装库文件
-1. 安装 [ESP8266](https://github.com/esp8266/Arduino) 库
-2. 安装[Heltec_ESP8266](https://github.com/HelTecAutomation/Heltec_ESP8266)库
-3. 安装 [WifiManager](https://github.com/tzapu/WiFiManager)库
-4. 安装 [Time](https://github.com/PaulStoffregen/Time)库
-5. 安装 [ArduinoJson](https://github.com/bblanchon/ArduinoJson)库
-### 使用Arduino打开 `gancenty/Gancenty.ino` 测试是否编译成功
+1. **首先下载该项目**
+    - 通过Git `Git clone git@github.com:Gancenty/WIFI-KIT-8-Gancenty-mini.git`
+    - 直接点击 [DownLoad ZIP](https://github.com/Gancenty/WIFI-KIT-8-Gancenty-mini/archive/master.zip)
+2. **安装库文件**
+    -  安装 [ESP8266](https://github.com/esp8266/Arduino) 库
+    - 安装[Heltec_ESP8266](https://github.com/HelTecAutomation/Heltec_ESP8266)库
+    - 安装 [WifiManager](https://github.com/tzapu/WiFiManager)库
+    - 安装 [Time](https://github.com/PaulStoffregen/Time)库
+    - 安装 [ArduinoJson](https://github.com/bblanchon/ArduinoJson)库
+3. **使用Arduino打开 `gancenty/Gancenty.ino` 测试是否编译成功**
 ## 三：代码介绍
 `/xbm`文件夹下为bmp位图转换成的c语言数组，用于显示丰富的动画效果 [图片来源](https://icons8.com/animated-icons)
 
 `func.h`一些自定义函数
+
+`syn.h`同步时候动画代码
+
+`timenow.h`时间显示代码
+
+`weatherani.h`天气动画代码
+
+`weathernow.h`显示此时天气代码
+
+`weathertime.h`显示天气时间日期代码
 
 例：`void wifiicon(int xpos,int ypos,int iwidth,int iheight);`&nbsp;xpos表示在屏幕显示的横轴 ypos表示在屏幕上显示的纵轴 iwidth和iheight是位图长宽，默认为32。
 
