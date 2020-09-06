@@ -57,6 +57,7 @@ void WeatherTimeDis(){
     WeatherTimeInfo();
      if(weathernow=="null"){
         puzzled(95,0,32,32);
+        return;
       }//获取不到天气信息
       if(weathercode[setday]==0||weathercode[setday]==1||weathercode[setday]==38){
         sunny(95,0,32,32);

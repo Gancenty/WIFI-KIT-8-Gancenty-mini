@@ -20,6 +20,7 @@ void WeatherNowDis(){
     WeatherNowInfo();
     if(weathernow=="null"){
       puzzled(0,0,32,32);
+      return;
     }//获取不到天气信息
     if(weathercode[setday]==0||weathercode[setday]==1||weathercode[setday]==38){
       sunny(0,0,32,32);

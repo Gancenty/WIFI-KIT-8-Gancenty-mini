@@ -168,7 +168,7 @@ void WeatherForecastDis(){
     if(digitalRead(0)==LOW){
       clearOnce=true;
       break;
-    }
+    }//退出显示天气预报
     switch(setday){
       case 0:xpos=0;ypos=0;break;
       case 1:xpos=48;ypos=0;Heltec.display->drawString(40,15,"<>");Heltec.display->display();delay(delaytime);break;
@@ -177,6 +177,7 @@ void WeatherForecastDis(){
     }
     if(weathernow=="null"){
       puzzled(xpos,ypos,32,32);
+      continue;
     }//获取不到天气信息
     if(weathercode[setday]==0||weathercode[setday]==1||weathercode[setday]==38){
       sunny(xpos,ypos,32,32);
