@@ -22,8 +22,9 @@ void drawRectdotO(int xpos,int ypos,int iwidth,int iheight,int density);//绘制
 void WifiInfo();//搭配wifiicon
 void WeatherNowInfo();//天气信息，搭配天气动画使用
 void WeatherTimeInfo();//同时显示天气和时间
-void SynchronizeInfo(int progress);
-void setwifi();
+void SynchronizeInfo(int progress);//1为time  2为weather
+void setwifi();//设置wifi
+bool juagefile();//判断文件是否存在
 
 void WeatherNowDis();//天气显示 
 void TimeDis();//大屏时间显示
@@ -32,6 +33,7 @@ void SynchronizeDis(int type);//1为时间同步，2为天气同步
 void WeatherForecastDis();//天气预报
 void WifiDis();//显示wifi信息
 void TimeCountDis();//计时器
+void ClasstableDis(int classday);//课表显示
 
 void UpdateWeatherNow();//天气更新
 

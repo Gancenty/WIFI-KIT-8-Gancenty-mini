@@ -6,6 +6,7 @@
 #include<WiFiManager.h>
 #include <TimeLib.h>
 #include <WiFiUdp.h>
+#include<FS.h>
 
 #include "func.h"
 
@@ -50,6 +51,7 @@ String weatherOnlineUpdate="";//网络天气更新时间
 
 time_t lastupdate=0;//最后更新时间
 time_t updatetime=10*60;//更新延迟 十分钟
+#define CLASSTABLE "/classtable.txt"//课表文件目录
 
 int xpos=0;
 int ypos=0;
@@ -71,7 +73,7 @@ void setup() {
   Heltec.display->flipScreenVertically();
   Heltec.display->setBrightness(128);
   screenCleanA();
-  
+  SPIFFS.begin();//文件操作服务
   WiFiManager wifiConnect;
   delay(100); 
   wifiConnect.setConfigPortalTimeout(240);
@@ -119,23 +121,26 @@ void loop(){
     Heltec.display->drawProgressBar(15,17,98,10,progress);
     delay(10);
     progress+=2;
+    
     if(progress==100){
     DisplayType+=1;
     timecount=true;
     pause=false;
     clearOnce=true;
     progress=0;
-    if(DisplayType==7){
+    if(DisplayType==8){
       DisplayType=1;
     }
     }
+    
     switch(DisplayType){
     case 1:nowstr="1.WeatherTimeDis";break;
     case 2:nowstr="2.TimeCountDis";break;
-    case 3:nowstr="3.WeatherNowDis";break;
-    case 4:nowstr="4.TimeDis";break;
-    case 5:nowstr="5.WeatherDis";break;
-    case 6:nowstr="6.WiFiDis";break;
+    case 3:nowstr="3.ClassTableDis";break;
+    case 4:nowstr="4.WeatherNowDis";break;
+    case 5:nowstr="5.TimeDis";break;
+    case 6:nowstr="6.WeatherDis";break;
+    case 7:nowstr="7.WiFiDis";break;
     default:break;
   }  
     Heltec.display->setFont(ArialMT_Plain_10);
@@ -146,14 +151,113 @@ void loop(){
   switch(DisplayType){
     case 1:WeatherTimeDis();break;
     case 2:TimeCountDis();break;
-    case 3:WeatherNowDis();break;
-    case 4:TimeDis();break;
-    case 5:WeatherForecastDis();break;
-    case 6:WifiDis();break;
+    case 3:ClasstableDis(weekday()-1);break;
+    case 4:WeatherNowDis();break;
+    case 5:TimeDis();break;
+    case 6:WeatherForecastDis();break;
+    case 7:WifiDis();break;
     default:break;
   }
  }
-
+void ClasstableDis(int classday){
+    screenCleanA();
+    if(!juagefile()){
+      return;
+    }
+    Heltec.display->setFont(ArialMT_Plain_10);
+    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
+    if(classday==0){
+    classday=7;//调整到星期日的课表
+    }
+    String COURSE;//课程名字
+    String COURSETI;//上课时间
+    String COURSERO;//上课地点
+    File datetable=SPIFFS.open(CLASSTABLE,"r");//打开CLASSTABLE课表   
+    while(datetable.available()){
+    datetable.readStringUntil('\r\n');//跳过注释部分
+    for(int i=0;i<classday;i++){
+       datetable.readStringUntil('?');
+       datetable.readStringUntil('/');
+    }//选择第几天的课表
+    bool judge=true;
+    int j=0;
+   if(hour()>=22&&hour()<=24&&judge){     
+    datetable.readStringUntil('?');
+    datetable.readStringUntil('/');
+    Serial.println(F("跳过三次"));
+    } 
+   if(hour()>=12&&hour()<=18&&judge){  
+    j=1;
+    datetable.readStringUntil('/');
+    datetable.readStringUntil('/');
+    Serial.println(F("跳过一次"));
+    judge=false;
+    }
+   if(hour()>=18&&hour()<=22&&judge){
+    j=2;
+    datetable.readStringUntil('/');
+    datetable.readStringUntil('/');
+    datetable.readStringUntil('/');
+    datetable.readStringUntil('/');
+    Serial.println(F("跳过二次"));
+    judge=false;
+    }
+    screenCleanA();
+    drawRectdotI(0,0,128,32,3);
+    for(int i=0;i<2;i++){
+    //循环两次把课表两节课显示出来
+    //LIKE  /高数T08001000C1105F01-16/线代T10201150C1106F01-15/TCF/TCF/TCF/TCF/
+    COURSE=datetable.readStringUntil('T');//COURSE
+    delay(10);
+    if(COURSE==""){
+      COURSE=F("^_^");
+      }
+    COURSETI=datetable.readStringUntil('C');//时间
+    delay(10);
+    if(COURSETI==""){
+      COURSETI=F("00:00-00:00");
+      }
+    COURSERO=datetable.readStringUntil('/');//教室 
+    delay(10);
+    if(COURSERO==""){
+      COURSERO=F("0000");
+      }
+      int xpos,ypos;
+      switch(i){
+        case 0:xpos=screencenterX;ypos=screencenterY-6;break;
+        case 1:xpos=screencenterX;ypos=screencenterY+6;break;
+        default:xpos=0;ypos=0;break;
+      }
+      String title=COURSE+"  "+COURSERO+"  "+COURSETI;
+      Heltec.display->drawString(xpos-48,ypos,COURSE); 
+      Heltec.display->drawString(xpos-18,ypos,COURSERO); 
+      Heltec.display->drawString(xpos+28,ypos,COURSETI); 
+    }
+      Heltec.display->display();
+      datetable.close();
+   }
+   int i=0;
+   while(digitalRead(0)!=LOW){
+      delay(500);
+      i++;
+      if(i==120){
+        break;
+      }
+   }
+ }
+bool juagefile(){
+    bool a=true;
+    while(!SPIFFS.exists(CLASSTABLE)){  
+      //判断是否存在classtable文件
+        Heltec.display->setFont(ArialMT_Plain_16);
+        Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
+        Heltec.display->drawString(64,16,"Oh No!"); 
+        Heltec.display->display();
+        a=false;
+        break;
+      }
+  return a;//判断是否有课表 返回值 bool
+}
 void WeatherForecastDis(){
   int delaytime=500;
   if(clearOnce){
