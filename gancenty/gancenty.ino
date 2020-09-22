@@ -9,6 +9,7 @@
 #include<FS.h>
 
 #include "func.h"
+#include "variable.h"
 
 #include "./xbm/wifigif.h"
 #include "./xbm/cloudy.h"//阴天 晴晚间多云 晴晚间大部多云
@@ -26,47 +27,16 @@
 #include "./xbm/Synchronize.h"
 #include "./xbm/energy.h"
 
-/*天气服务配置信息*/
-const char* host = "api.seniverse.com";     // 将要连接的服务器地址  
-const int httpPort = 80;                    // 将要连接的服务器端口      
- 
-// 心知天气HTTP请求所需信息
-String reqUserKey = "S0u-8VQ7vWGcXDVf2";   // 私钥
-String reqLocation = "Nanchang";            // 城市
-String reqUnit = "c"; 
-
-time_t prevDisplay = 0;//初始时间
-unsigned int localPort = 8888;
-WiFiUDP Udp;//用于向ntp服务器发送数据包端口
-static const char ntpServerName[] = "ntp1.aliyun.com";//时间NTP服务器
-const int timeZone = 8; //时区设置
-
-int animationfps=40;//动画30帧
-int refreshtime=1000/animationfps;
-
-String weathernow="";//现在天气情况
-String tempnow="";//现在温度情况
-int weathercode[3]={0,0,0};//现在天气代码
-String weatherOnlineUpdate="";//网络天气更新时间
-
-time_t lastupdate=0;//最后更新时间
-time_t updatetime=10*60;//更新延迟 十分钟
-#define CLASSTABLE "/classtable.txt"//课表文件目录
-
-int xpos=0;
-int ypos=0;
-int iwidth=0;
-int iheight=0;
-int16_t screencenterX=0;
-int16_t screencenterY=0;
-
 /*动画函数*/
-#include "weatherani.h"
-#include "wifi.h"
-#include "syn.h"
-#include "weathernow.h"
-#include "weathertime.h"
-#include "timenow.h"
+#include "weatherani.h"//天气动画
+#include "wifi.h"//wifi信息显示
+#include "syn.h"//同步动画
+#include "weathernow.h"//当天天气
+#include "weathertime.h"//天气与时间显示
+#include "timenow.h"//当前时间
+#include "weatherforecast.h"//天气预报
+#include "classtabledis.h"//课表显示
+#include "timecount.h"//计时器代码
 
 void setup() {
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Serial Enable*/);
@@ -101,13 +71,7 @@ void setup() {
   }
   screenCleanA();
 }
-int DisplayType=1;//显示模块
-bool timecount=true;//计时开启
-bool clearOnce=true;//forecast清屏
-int nowpassed=0;//过去开始计时时候的now()
-int secondpassed=0;//过去的时间
-int pausetime=0;//暂停时间
-bool pause=false;//计时器暂停
+
 void loop(){
   int progress=0;//进度条变量
   String nowstr="";
@@ -159,167 +123,7 @@ void loop(){
     default:break;
   }
  }
-void ClasstableDis(int classday){
-    screenCleanA();
-    if(!juagefile()){
-      return;
-    }
-    Heltec.display->setFont(ArialMT_Plain_10);
-    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
-    if(classday==0){
-    classday=7;//调整到星期日的课表
-    }
-    String COURSE;//课程名字
-    String COURSETI;//上课时间
-    String COURSERO;//上课地点
-    File datetable=SPIFFS.open(CLASSTABLE,"r");//打开CLASSTABLE课表   
-    while(datetable.available()){
-    datetable.readStringUntil('\r\n');//跳过注释部分
-    for(int i=0;i<classday;i++){
-       datetable.readStringUntil('?');
-       datetable.readStringUntil('/');
-    }//选择第几天的课表
-    bool judge=true;
-    int j=0;
-   if(hour()>=22&&hour()<=24&&judge){     
-    datetable.readStringUntil('?');
-    datetable.readStringUntil('/');
-    Serial.println(F("跳过三次"));
-    } 
-   if(hour()>=12&&hour()<=18&&judge){  
-    j=1;
-    datetable.readStringUntil('/');
-    datetable.readStringUntil('/');
-    Serial.println(F("跳过一次"));
-    judge=false;
-    }
-   if(hour()>=18&&hour()<=22&&judge){
-    j=2;
-    datetable.readStringUntil('/');
-    datetable.readStringUntil('/');
-    datetable.readStringUntil('/');
-    datetable.readStringUntil('/');
-    Serial.println(F("跳过二次"));
-    judge=false;
-    }
-    screenCleanA();
-    drawRectdotI(0,0,128,32,3);
-    for(int i=0;i<2;i++){
-    //循环两次把课表两节课显示出来
-    //LIKE  /高数T08001000C1105F01-16/线代T10201150C1106F01-15/TCF/TCF/TCF/TCF/
-    COURSE=datetable.readStringUntil('T');//COURSE
-    delay(10);
-    if(COURSE==""){
-      COURSE=F("^_^");
-      }
-    COURSETI=datetable.readStringUntil('C');//时间
-    delay(10);
-    if(COURSETI==""){
-      COURSETI=F("00:00-00:00");
-      }
-    COURSERO=datetable.readStringUntil('/');//教室 
-    delay(10);
-    if(COURSERO==""){
-      COURSERO=F("0000");
-      }
-      int xpos,ypos;
-      switch(i){
-        case 0:xpos=screencenterX;ypos=screencenterY-6;break;
-        case 1:xpos=screencenterX;ypos=screencenterY+6;break;
-        default:xpos=0;ypos=0;break;
-      }
-      String title=COURSE+"  "+COURSERO+"  "+COURSETI;
-      Heltec.display->drawString(xpos-48,ypos,COURSE); 
-      Heltec.display->drawString(xpos-18,ypos,COURSERO); 
-      Heltec.display->drawString(xpos+28,ypos,COURSETI); 
-    }
-      Heltec.display->display();
-      datetable.close();
-   }
-   int i=0;
-   while(digitalRead(0)!=LOW){
-      delay(500);
-      i++;
-      if(i==120){
-        break;
-      }
-   }
- }
-bool juagefile(){
-    bool a=true;
-    while(!SPIFFS.exists(CLASSTABLE)){  
-      //判断是否存在classtable文件
-        Heltec.display->setFont(ArialMT_Plain_16);
-        Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
-        Heltec.display->drawString(64,16,"Oh No!"); 
-        Heltec.display->display();
-        a=false;
-        break;
-      }
-  return a;//判断是否有课表 返回值 bool
-}
-void WeatherForecastDis(){
-  int delaytime=500;
-  if(clearOnce){
-    screenCleanA();
-    clearOnce=false;    
-  }else{
-    delaytime=0;
-  }
-  Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  for(int setday=0;setday<3;setday++){
-    if(digitalRead(0)==LOW){
-      clearOnce=true;
-      break;
-    }//退出显示天气预报
-    switch(setday){
-      case 0:xpos=0;ypos=0;break;
-      case 1:xpos=48;ypos=0;Heltec.display->drawString(40,15,"<>");Heltec.display->display();delay(delaytime);break;
-      case 2:xpos=96;ypos=0;Heltec.display->drawString(88,15,"<>");Heltec.display->display();delay(delaytime);break;
-      default:break;
-    }
-    if(weathernow=="null"){
-      puzzled(xpos,ypos,32,32);
-      continue;
-    }//获取不到天气信息
-    if(weathercode[setday]==0||weathercode[setday]==1||weathercode[setday]==38){
-      sunny(xpos,ypos,32,32);
-    }
-    if(weathercode[setday]==4||weathercode[setday]==5||weathercode[setday]==6||weathercode[setday]==7||weathercode[setday]==8||weathercode[setday]==9){
-      cloudy(xpos,ypos,32,32);
-    }
-    if(weathercode[setday]==10){
-      shower(xpos,ypos,32,32);
-    }   
-    if(weathercode[setday]==11||weathercode[setday]==12){
-      thunderrain(xpos,ypos,32,32);
-    } 
-    if(weathercode[setday]==13||weathercode[setday]==14){
-      lightrain(xpos,ypos,32,32);
-    } 
-    if(weathercode[setday]==15||weathercode[setday]==16||weathercode[setday]==17||weathercode[setday]==18){
-      heavyrain(xpos,ypos,32,32);
-    }
-    if(weathercode[setday]==19||weathercode[setday]==20||weathercode[setday]==21||weathercode[setday]==22||weathercode[setday]==23){
-      lightsnow(xpos,ypos,32,32);
-    }
-    if(weathercode[setday]==24||weathercode[setday]==25||weathercode[setday]==37){
-      heavysnow(xpos,ypos,32,32);
-    }
-    if(weathercode[setday]==26||weathercode[setday]==27||weathercode[setday]==28||weathercode[setday]==29||weathercode[setday]==30||weathercode[setday]==31){
-      if(hour()>=18){
-        nightfog(xpos,ypos,32,32);
-      }else{
-        dayhaze(xpos,ypos,32,32);
-      }
-    }
-    if(weathercode[setday]==32||weathercode[setday]==33||weathercode[setday]==34||weathercode[setday]==35||weathercode[setday]==36){
-      windy(xpos,ypos,32,32);
-    }
-  }
-  
-}
+
 void setwifi(){
   WiFiManager wifiConnect;
   WiFi.disconnect();
@@ -330,71 +134,7 @@ void setwifi(){
   wifiConnect.startConfigPortal("Malloc.","20001031");  
 }
 
-void TimeCountDis(){  
-    if(timecount){
-      nowpassed=now();
-      timecount=false;
-      pausetime=0;
-      }
-    if(!pause){
-      screenCleanA();
-      Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-      Heltec.display->setFont(ArialMT_Plain_16);
-      String timenow="";
-      nowpassed+=pausetime;
-      secondpassed=now()-nowpassed;
-      pausetime=0;
-      int hournow=secondpassed/3600;
-      int minutenow=(secondpassed-hournow*3600)/60;
-      int secondnow=secondpassed%60;
-      if(hournow<10){
-      timenow+="0";
-       }
-      timenow+=String(hournow);
-      timenow+=":";
-      if(minutenow<10){
-        timenow+="0";
-      }
-      timenow+=String(minutenow);
-      timenow+=":";
-      if(secondnow<10){
-        timenow+="0";
-      }
-      timenow+=String(secondnow);
-      drawRectdotI(0,0,90,32,3); 
-      Heltec.display->drawString(screencenterX,screencenterY,timenow); 
-      Heltec.display->display();
-      energy(95,0,32,32);    
-   }else{
-      screenCleanA();
-      Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-      Heltec.display->setFont(ArialMT_Plain_16);
-      String timenow="";
-      int hournow=secondpassed/3600;
-      int minutenow=(secondpassed-hournow*3600)/60;
-      int secondnow=secondpassed%60;
-      if(hournow<10){
-        timenow+="0";
-      }
-      timenow+=String(hournow);
-      timenow+=":";
-      if(minutenow<10){
-        timenow+="0";
-      }
-      timenow+=String(minutenow);
-      timenow+=":";
-      if(secondnow<10){
-        timenow+="0";
-      }
-      timenow+=String(secondnow);
-      drawRectdotI(0,0,90,32,3); 
-      Heltec.display->drawString(screencenterX,screencenterY,timenow); 
-      Heltec.display->drawXbm(95, 0, 32, 32, energy27);
-      Heltec.display->display();  
-      delay(500);
-      pausetime=now()-(nowpassed+secondpassed);
-  }
-}
+
 void UpdateWeatherNow(){
   if(now()-lastupdate>updatetime){
         httpRequest();
