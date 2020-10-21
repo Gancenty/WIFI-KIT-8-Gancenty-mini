@@ -1,11 +1,15 @@
 void WeatherNowInfo(){
-    screenCleanA();
+  if(now()>=prevDisplay){
+    prevDisplay=now();
+    prevDisplay+=10*60;
+    screenCleanA(); 
     Heltec.display->setFont(ArialMT_Plain_10);
     Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
     drawRectdotO(36,0,128-37,32,3);
     Heltec.display->drawString(screencenterX,screencenterY-5,weathernow); 
     Heltec.display->drawString(screencenterX,screencenterY+5,"Temp:"+tempnow+"°C");
     Heltec.display->display();
+  }
 }
 void WeatherNowDis(){
     int setday=0;

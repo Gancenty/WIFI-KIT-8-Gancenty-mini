@@ -1,5 +1,4 @@
 void TimeDis(){
-  delay(500);
   screenCleanA();
   if (timeStatus() != timeNotSet) {
   if (now() != prevDisplay) { //update the display only if time has changed

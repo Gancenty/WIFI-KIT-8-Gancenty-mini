@@ -35,8 +35,8 @@ int16_t screencenterY=0;
 
 int DisplayType=1;//显示模块
 bool timecount=true;//计时开启
-bool clearOnce=true;//forecast清屏一次
 int nowpassed=0;//过去开始计时时候的now()
 int secondpassed=0;//过去的时间
 int pausetime=0;//暂停时间
-bool pause=false;//计时器暂停
+bool pause=true;//计时器暂停
+bool nightstatus=false;

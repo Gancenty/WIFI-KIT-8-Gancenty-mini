@@ -1,5 +1,8 @@
-void WeatherTimeInfo(){
+void WeatherTimeInfo(){ 
+  if(now() !=prevDisplay){
     screenCleanA();
+    drawRectdotO(0,0,90,32,3); 
+    prevDisplay=now();
     String timenow="";
     if(hour()<10){
       timenow+="0";
@@ -15,7 +18,6 @@ void WeatherTimeInfo(){
       timenow+="0";
     }
     timenow+=String(second());
-    drawRectdotO(0,0,90,32,3); 
     Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
     Heltec.display->setFont(ArialMT_Plain_10);
     Heltec.display->drawString(screencenterX-15,screencenterY-5,timenow); 
@@ -39,10 +41,9 @@ void WeatherTimeInfo(){
       case 7:datenow+=F(" Sat");break;
       default:datenow+=F(" NULL");
     }
-    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
-    Heltec.display->setFont(ArialMT_Plain_10);
     Heltec.display->drawString(screencenterX+15,screencenterY+5,datenow);
     Heltec.display->display(); 
+  }
 }
 void WeatherTimeDis(){
     int setday=0;

@@ -75,6 +75,22 @@ void setup() {
 void loop(){
   int progress=0;//进度条变量
   String nowstr="";
+  if(hour()>=23&&minute()>=30||hour()<6){
+    DisplayType=8;
+    nightstatus=true;
+  }
+  if(digitalRead(0)==LOW&&DisplayType==8){
+    nightstatus=!nightstatus;
+    delay(50);
+    if(hour()>=23&&minute()>=30||hour()<6){
+      for(int i=0;i<5;i++){
+        Heltec.display->displayOn();
+        Heltec.display->setBrightness(128);
+        TimeDis();
+        delay(1000);
+      } 
+    }
+  }
   if(digitalRead(0)==LOW&&DisplayType==2){
     pause=!pause;
     delay(100);
@@ -89,14 +105,11 @@ void loop(){
     if(progress==100){
     DisplayType+=1;
     timecount=true;
-    pause=false;
-    clearOnce=true;
     progress=0;
-    if(DisplayType==8){
+    if(DisplayType==9){
       DisplayType=1;
     }
     }
-    
     switch(DisplayType){
     case 1:nowstr="1.WeatherTimeDis";break;
     case 2:nowstr="2.TimeCountDis";break;
@@ -105,12 +118,14 @@ void loop(){
     case 5:nowstr="5.TimeDis";break;
     case 6:nowstr="6.WeatherDis";break;
     case 7:nowstr="7.WiFiDis";break;
+    case 8:nowstr="8.NightMode";break;
     default:break;
   }  
     Heltec.display->setFont(ArialMT_Plain_10);
     Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
     Heltec.display->drawString(64,9,nowstr); 
     Heltec.display->display();
+    screenCleanA(); 
   }
   switch(DisplayType){
     case 1:WeatherTimeDis();break;
@@ -120,10 +135,45 @@ void loop(){
     case 5:TimeDis();break;
     case 6:WeatherForecastDis();break;
     case 7:WifiDis();break;
+    case 8:nightmode();break;
     default:break;
   }
  }
-
+void nightmode(){
+  int statusnow;
+  String str;
+  if(nightstatus==true){
+    str="ON";
+    statusnow=100;
+    
+  }else{
+    str="OFF";
+    statusnow=0;
+    Heltec.display->setBrightness(128);
+    Heltec.display->displayOn();
+  }
+  screenCleanA();
+  Heltec.display->setFont(ArialMT_Plain_10);
+  Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
+  Heltec.display->drawProgressBar(100,10,20,10,statusnow);
+  Heltec.display->drawString(32,16,"Status: "+str); 
+  Heltec.display->display();
+  statusnow=0;
+  while(nightstatus){
+    delay(100);
+    if(statusnow<50){
+      statusnow+=1;
+    }
+    if(digitalRead(0)==LOW){
+      delay(50);
+      break;
+    }
+    Heltec.display->setBrightness(128-(statusnow*128/50));
+    if(statusnow==50){
+      Heltec.display->displayOff();
+    }
+  }
+}
 void setwifi(){
   WiFiManager wifiConnect;
   WiFi.disconnect();

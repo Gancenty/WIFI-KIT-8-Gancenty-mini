@@ -18,6 +18,7 @@ void screenClean(int xpos,int ypos,int iwidth,int iheight);//用于屏幕清除
 void screenCleanA();//用于屏幕清除 Heltec.display->clear();
 void drawRectdotI(int xpos,int ypos,int iwidth,int iheight,int density);//绘制内点框
 void drawRectdotO(int xpos,int ypos,int iwidth,int iheight,int density);//绘制外点框
+void nightmode();
 
 void WifiInfo();//搭配wifiicon
 void WeatherNowInfo();//天气信息，搭配天气动画使用

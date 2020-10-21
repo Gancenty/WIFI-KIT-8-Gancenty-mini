@@ -1,16 +1,14 @@
 void WeatherForecastDis(){
-  int delaytime=500;
-  if(clearOnce){
-    screenCleanA();
-    clearOnce=false;    
-  }else{
-    delaytime=0;
-  }
+  UpdateWeatherNow();
+  int delaytime=0;
+  if(now() >= prevDisplay){
+    prevDisplay=now()+10*60;
+    delaytime=500;
+  }  
   Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);
   Heltec.display->setFont(ArialMT_Plain_10);
   for(int setday=0;setday<3;setday++){
     if(digitalRead(0)==LOW){
-      clearOnce=true;
       break;
     }//退出显示天气预报
     switch(setday){
