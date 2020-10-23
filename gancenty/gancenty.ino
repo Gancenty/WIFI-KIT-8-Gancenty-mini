@@ -101,7 +101,6 @@ void loop(){
     Heltec.display->drawProgressBar(15,17,98,10,progress);
     delay(10);
     progress+=2;
-    
     if(progress==100){
     DisplayType+=1;
     timecount=true;
@@ -145,7 +144,6 @@ void nightmode(){
   if(nightstatus==true){
     str="ON";
     statusnow=100;
-    
   }else{
     str="OFF";
     statusnow=0;
@@ -153,6 +151,7 @@ void nightmode(){
     Heltec.display->displayOn();
   }
   screenCleanA();
+  drawRectdotI(0,0,128,32,3);
   Heltec.display->setFont(ArialMT_Plain_10);
   Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
   Heltec.display->drawProgressBar(100,10,20,10,statusnow);
@@ -163,14 +162,18 @@ void nightmode(){
     delay(100);
     if(statusnow<50){
       statusnow+=1;
+      Heltec.display->setBrightness(128-(statusnow*128/50));
     }
     if(digitalRead(0)==LOW){
       delay(50);
       break;
     }
-    Heltec.display->setBrightness(128-(statusnow*128/50));
     if(statusnow==50){
       Heltec.display->displayOff();
+    }
+    if(hour()==6&&minute()==0){
+      DisplayType=1;
+      nightstatus=false;
     }
   }
 }
