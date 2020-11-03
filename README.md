@@ -17,6 +17,8 @@ WIFI-KIT-8&nbsp;[GitHub首页](https://github.com/HelTecAutomation/Heltec_ESP826
 
 `func.h`一些自定义函数
 
+`variable.h`变量名字
+
 `syn.h`同步时候动画代码
 
 `timenow.h`时间显示代码
@@ -27,19 +29,23 @@ WIFI-KIT-8&nbsp;[GitHub首页](https://github.com/HelTecAutomation/Heltec_ESP826
 
 `weathertime.h`显示天气时间日期代码
 
+***有一些就不说了，挺简单的***
+
 例：`void wifiicon(int xpos,int ypos,int iwidth,int iheight);`&nbsp;xpos表示在屏幕显示的横轴 ypos表示在屏幕上显示的纵轴 iwidth和iheight是位图长宽，默认为32。
 
 ## 四：产品功能
 ```c
-    switch(DisplayType){
-    case 1:nowstr="1.WeatherTimeDis";break;//显示时间天气日期
-    case 2:nowstr="2.TimeCountDis";break;//计时器功能
-    case 3:nowstr="3.WeatherNowDis";break;//显示今日天气
-    case 4:nowstr="4.TimeDis";break;//显示当前时间
-    case 5:nowstr="5.WeatherDis";break;//天气预报
-    case 6:nowstr="6.WiFiDis";break;//显示连接WiFi信息
+  switch(DisplayType){
+    case 1:WeatherTimeDis();break;
+    case 2:TimeCountDis();break;
+    case 3:ClasstableDis(weekday()-1);break;
+    case 4:WeatherNowDis();break;
+    case 5:TimeDis();break;
+    case 6:WeatherForecastDis();break;
+    case 7:WifiDis();break;
+    case 8:nightmode();break;
     default:break;
-  }  
+  }
 ```
 1. 显示此时天气，默认更新时间为十分钟`time_t updatetime=10*60;` 
 2. 显示此时时间，默认更新时间5分钟`setSyncInterval(300);`
