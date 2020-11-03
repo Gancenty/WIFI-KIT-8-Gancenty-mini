@@ -32,7 +32,8 @@ void TimeCountDis(){
       drawRectdotI(0,0,90,32,3);  
       Heltec.display->drawString(screencenterX,screencenterY,timenow); 
       Heltec.display->display();
-      energy(95,0,32,32);    
+      energy(95,0,32,32);  
+      delay(100); 
    }else{
       screenCleanA();
       Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH);

@@ -78,11 +78,11 @@ void loop(){
   if(hour()>=23&&minute()>=30||hour()<6){
     DisplayType=8;
     nightstatus=true;
-  }
+  }//自动进入夜间模式
   if(digitalRead(0)==LOW&&DisplayType==8){
     nightstatus=!nightstatus;
     delay(50);
-    if(hour()>=23&&minute()>=30||hour()<6){
+    if(hour()>=23&&minute()>=30||hour()<6){//夜间模式时按动显示时间5秒
       for(int i=0;i<5;i++){
         Heltec.display->displayOn();
         Heltec.display->setBrightness(128);
@@ -100,14 +100,17 @@ void loop(){
     screenCleanA();
     Heltec.display->drawProgressBar(15,17,98,10,progress);
     delay(10);
-    progress+=2;
-    if(progress==100){
+    progress+=1;
+    if(progress%(100/4)==0){//每次25自动加一
     DisplayType+=1;
     timecount=true;
-    progress=0;
+    pause=true;
+    }
+    if(progress==100){
+       progress=0;
+    }
     if(DisplayType==9){
       DisplayType=1;
-    }
     }
     switch(DisplayType){
     case 1:nowstr="1.WeatherTimeDis";break;
@@ -150,13 +153,16 @@ void nightmode(){
     Heltec.display->setBrightness(128);
     Heltec.display->displayOn();
   }
-  screenCleanA();
-  drawRectdotI(0,0,128,32,3);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
-  Heltec.display->drawProgressBar(100,10,20,10,statusnow);
-  Heltec.display->drawString(32,16,"Status: "+str); 
-  Heltec.display->display();
+  if(now()!=prevDisplay||str=="ON"){
+    prevDisplay=now();
+    screenCleanA();
+//  drawRectdotI(0,2,65,28,3);不好看emmm
+    Heltec.display->setFont(ArialMT_Plain_10);
+    Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
+    Heltec.display->drawProgressBar(100,10,20,10,statusnow);
+    Heltec.display->drawString(32,16,"Status: "+str); 
+    Heltec.display->display();
+  }
   statusnow=0;
   while(nightstatus){
     delay(100);
@@ -172,9 +178,11 @@ void nightmode(){
       Heltec.display->displayOff();
     }
     if(hour()==6&&minute()==0){
+      Heltec.display->setBrightness(128);
+      Heltec.display->displayOn();
       DisplayType=1;
       nightstatus=false;
-    }
+    }//自动退出夜间模式
   }
 }
 void setwifi(){
