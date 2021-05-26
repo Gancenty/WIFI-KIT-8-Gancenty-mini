@@ -40,3 +40,5 @@ int secondpassed=0;//过去的时间
 int pausetime=0;//暂停时间
 bool pause=true;//计时器暂停
 bool nightstatus=false;
+float tem;//当前温度
+float hum;//当前湿度

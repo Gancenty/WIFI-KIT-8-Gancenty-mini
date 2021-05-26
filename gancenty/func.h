@@ -36,6 +36,9 @@ void WifiDis();//显示wifi信息
 void TimeCountDis();//计时器
 void ClasstableDis(int classday);//课表显示
 
+void TemperHumidityDis();
+void WeatherAniDis();
+
 void UpdateWeatherNow();//天气更新
 
 time_t getNtpTime();//获取当前时间

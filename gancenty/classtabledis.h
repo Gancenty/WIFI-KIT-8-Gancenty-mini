@@ -90,7 +90,7 @@ bool juagefile(){
       //判断是否存在classtable文件
         Heltec.display->setFont(ArialMT_Plain_16);
         Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER_BOTH); 
-        Heltec.display->drawString(64,16,"Oh No!"); 
+        Heltec.display->drawString(64,16,"Fallin all in you !"); 
         Heltec.display->display();
         a=false;
         break;
